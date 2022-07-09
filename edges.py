@@ -17,7 +17,7 @@ def node_degree_from_edge_list(edge_list: torch.LongTensor) -> torch.LongTensor:
 
 @cache_result_in_param
 def add_self_loops(edge_list: torch.LongTensor) -> torch.LongTensor:
-    v = torch.arange(edge_list.max(), dtype=torch.long)
+    v = torch.arange(edge_list.max()+1, dtype=torch.long)
     self_loops = torch.stack((v, v), dim=0)
     return torch.concat((edge_list, self_loops), dim=1)
 
