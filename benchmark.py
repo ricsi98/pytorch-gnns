@@ -42,11 +42,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, GATConv
 
 from layers import GCNLayer, GATLayer
 
 LAYER = "CONV_OWN"
+HEADS = 10
 
 class GCN(torch.nn.Module):
     def __init__(self):
@@ -56,11 +57,14 @@ class GCN(torch.nn.Module):
             self.conv1 = GCNConv(data.num_features, 16)
             self.conv2 = GCNConv(16, dataset.num_classes)
         elif LAYER == "CONV_OWN":
-            self.conv1 = GCNLayer(data.num_features, 16, use_self_loops=False)
-            self.conv2 = GCNLayer(16, dataset.num_classes, use_self_loops=False)
+            self.conv1 = GCNLayer(data.num_features, 16, use_self_loops=True)
+            self.conv2 = GCNLayer(16, dataset.num_classes, use_self_loops=True)
+        elif LAYER == "GAT_TG":
+            self.conv1 = GATConv(data.num_features, 16, heads=HEADS, concat=True)
+            self.conv2 = GATConv(16 * HEADS, dataset.num_classes, concat=False)
         elif LAYER == "GAT_OWN":
-            self.conv1 = GATLayer(data.num_features, 16, heads=1, concatenate=True)
-            self.conv2 = GATLayer(16 * 1, dataset.num_classes, concatenate=False)
+            self.conv1 = GATLayer(data.num_features, 16, heads=HEADS, concatenate=True)
+            self.conv2 = GATLayer(16 * HEADS, dataset.num_classes, concatenate=False)
         else:
             raise NotImplemented
 
