@@ -1,4 +1,5 @@
 from gnn_utils import *
+from edges import *
 import numpy as np
 import networkx as nx
 
