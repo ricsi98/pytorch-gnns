@@ -1,6 +1,6 @@
 USE_CACHE = True
 
-# ugly way to cache results on inpit parameter
+# ugly way to cache results on input parameter
 def cache_result_in_param(fn):
     if USE_CACHE:
         def wrapper(param):

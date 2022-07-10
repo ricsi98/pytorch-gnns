@@ -49,19 +49,18 @@ class GCNLayer(nn.Module, GNNLayer):
 
 class SageLayer(nn.Module, GNNLayer):
 
-    def __init__(self, in_dim: int, out_dim: int, use_self_loops: bool = True) -> None:
+    def __init__(self, in_dim: int, out_dim: int, use_self_loops: bool = True, **kwargs) -> None:
         super().__init__()
         self._use_self_loops = use_self_loops
-        self.lin_self = nn.Linear(in_dim, out_dim)
-        self.lin_neigh = nn.Linear(in_dim, out_dim)
+        self.lin_self = nn.Linear(in_dim, out_dim, **kwargs)
+        self.lin_neigh = nn.Linear(in_dim, out_dim, **kwargs)
 
     def forward(self, h: torch.tensor, edges: torch.LongTensor):
         if self._use_self_loops:
             edges = add_self_loops(edges)
         h_self = self.lin_self(h)
-        agg = aggregate(h, edges, "mean")
-        agg = self.lin_neigh(h)
-        return h_self + agg
+        msg = self.lin_neigh(aggregate(h, edges, "mean"))
+        return h_self + msg
 
 
 # avoid exploding coefficients
@@ -95,7 +94,6 @@ class GATLayer(nn.Module, GNNLayer):
             e = [torch.clip(e_, 0.005, 10) for e_ in e]
         # compute edge alphas using softmax
         alpha_deno = [aggregate(e_ij, edges, "sum") for e_ij in e] # softmax denominators per node
-        # TODO: clip denominators to avoid explosion of coefficients
         alphas = [e_ij / ad_ij[edges[1, :]] for e_ij, ad_ij in zip(e, alpha_deno)]
         h_next = [aggregate(h_, edges, "sum", a.view(-1)) for h_, a in zip(h_w, alphas)]
 
